@@ -1,8 +1,34 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { User } = require('../model/userSchema');
-
+const { Role } = require('../model/rolesSchema');
 class userAuth {
+
+
+
+    rolesAuth = async (req, res,next) => {
+        var roleid, policies = [];
+        await User.find({
+            email: { $in: req.isemail }
+        }).then(result => {
+            roleid = result[0].roleid;
+            //console.log(roleid);
+        })
+
+        await Role.find({
+            _id: { $in: roleid }
+        }).then(result => {
+            policies = result[0].policies;
+            
+        })
+        req.policies = policies;
+        next();
+
+    }
+
+
+
+
     auth = (req, res, next) => {
        
         try {

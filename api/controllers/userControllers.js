@@ -1,4 +1,5 @@
 const { User } = require('../model/userSchema');
+const { Role } = require('../model/rolesSchema');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
@@ -7,35 +8,38 @@ const validations = new userValidations;
 
 
 
-class user {
-    index = (req, res, next) => {
-        let keys = Object.keys(req.query);
-        let filters = new Object();
-        if (keys.includes("name")) {
+class userControllers {
+    index = async(req, res, next) => {
+            if (!req.policies.includes("show_users")) {
+                return res.status(404).json({ error: true,message: "unauthorized access" });
+        }
 
-            filters.name = { $regex: req.query["name"], $options: "i" };
-        }
-        if (keys.includes("email")) {
-            filters.email = { $regex: req.query["email"], $options: "i" };
-        }
-        if (keys.includes("gender")) {
-            filters.email = { $regex: req.query["gender"], $options: "i" };
-        }
-        if (keys.includes("isActive")) {
-            filters.email = { $regex: req.query["isActive"], $options: "i" };
-        }
-        User.find(filters).then(data => {
+            let keys = Object.keys(req.query);
+            let filters = new Object();
+            if (keys.includes("name")) {
 
-            if (data.length == 0) {
-
-                return res.status(404).json({ error:true,message: "no user with such query" });
+                filters.name = { $regex: req.query["name"], $options: "i" };
             }
-            return res.json({ data: data });
-        }).catch(err => {
-            return res.status(500).json({ error:true,message: err.message });
-        });
+            if (keys.includes("email")) {
+                filters.email = { $regex: req.query["email"], $options: "i" };
+            }
+            if (keys.includes("gender")) {
+                filters.gender = { $regex: req.query["gender"], $options: "i" };
+            }
+            if (keys.includes("isActive")) {
+                filters.isActive = { $regex: req.query["isActive"], $options: "i" };
+            }
 
+            User.find(filters).then(data => {
 
+                if (data.length == 0) {
+
+                    return res.status(404).json({ error: true, message: "no user with such query" });
+                }
+                return res.status(200).json({ error:false,data: data });
+            }).catch(err => {
+                return res.status(500).json({ error: true, message: err.message });
+            });
     }
 
 
@@ -53,7 +57,9 @@ class user {
 
 
     me = (req, res, next) => {
-
+        if (!req.policies.includes("show_me")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         User.findOne({ email: req.isemail }).then((data) => {
             if (data == null) {
                 return res.status(404).json({ error:true,message: "user not exists" });
@@ -74,6 +80,9 @@ class user {
 
 
     show = (req, res) => {
+        if (!req.policies.includes("show_users")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         User.findById({ _id: req.params.id }).then(result => {
             console.log("fd");
          
@@ -93,6 +102,9 @@ class user {
 
 
     destroy = (req, res) => {
+        if (!req.policies.includes("delete_user")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         User.findById(req.params.id).then(result => {
             if (result == null) {
                 return res.status(404).json({ error:true,message: "user doesn't exist" });
@@ -125,6 +137,9 @@ class user {
 
 
     update = (req, res) => {
+        if (!req.policies.includes("update")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         User.findOne({ _id: req.params.id },).then ((data) => {
 
             if (data == null) {
@@ -165,7 +180,7 @@ class user {
                 if (answer.error) {
                     return res.status(400).json({ error:true,message: answer.error.details[0].message });
                 }
-                User.updateOne(
+                User.updateOne (
                     { _id: req.params.id },
                     {
                         $set:
@@ -195,6 +210,9 @@ class user {
 
 
     updatePassword = (req, res) => {
+        if (!req.policies.includes("update_password")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         User.findOne({ _id: req.params.id },).then((data) => {
 
             if (data == null) {
@@ -257,7 +275,7 @@ class user {
 
 
 
-module.exports = { user };
+module.exports =  userControllers ;
 
 
 

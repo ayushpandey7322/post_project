@@ -6,33 +6,59 @@ const validations = new rolesValidations;
 
 
 
-class roles {
-    store = (req, res) => {
-        Role.findOne({ name: req.body.name }).then ((data) => {
+class rolesControllers {
+    store = async (req, res) => {
+        if (!req.policies.includes("create_role")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
+        Role.findOne({ name: req.body.name }).then (async(data) => {
             if (data == null) {
                 var policyNames = [];
                 let answer = validations.storeValidations.validate(req.body);
                 if (answer.error) {
-                    return res.status(400).json({ error:true,message: answer.error.details[0].message });
+                  return res.status(400).json({ error:true,message: answer.error.details[0].message });
                 }
-                async function f() {
-              
+
+                
+        
+
+                    var policyIds = [];
+                    await Policy.find().then(result => {
+                        for (let i = 0; i < result.length; i++) {
+                            policyIds.push(result[i]._id);
+                        }
+                    })
+                    let notExist = false;
+                    let policyNotExist = [];
+
+                    for (let i = 0; i < req.body.policyid.length; i++) {
+                        if (!policyIds.includes(req.body.policyid[i])) {
+                            notExist = true;
+                            policyNotExist.push(req.body.policyid[i]);
+                            
+                        }
+                    }
+
+                    if (notExist == true)
+                        return res.status(404).json({ error: true, message: "policies " + policyNotExist + " not exists" });
+
                     await Policy.find({
                         _id: { $in: req.body.policyid }
                     }).then (
                         result => {
-                            console.log(result.length);
+                            //console.log("policies",result);
                             for (let i = 0; i < result.length; i++) {
-                                policyNames.push(result[i].name);
+                                if (result[i].isActive == true)
+                                    policyNames.push(result[i].name);
 
                             }
-                            console.log("dfaf");
-                            console.log(policyNames);
+                           // console.log("dfaf");
+                           // console.log(policyNames);
                         }, error => {console.log("fsf") });
 
                     //  return res.json({ msg: "true" });
-                    console.log("yyy");
-                    console.log(policyNames);
+                   // console.log("yyy");
+                   // console.log(policyNames);
                     const role = new Role({
                         name: req.body.name,
                         display_name: req.body.display_name.toLowerCase(),
@@ -49,8 +75,7 @@ class roles {
 
                     }
                     ).catch(err => { return res.status(500).json({ error:true,message: err.message }) });
-                }
-                f();
+      
             }
             else {
                 return res.status(401).json({ error:true,message :'role exist' });
@@ -61,6 +86,9 @@ class roles {
     };
 
     index = (req, res, next) => {
+        if (!req.policies.includes("show_role")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         let keys = Object.keys(req.query);
         let filters = new Object();
 
@@ -69,7 +97,7 @@ class roles {
             filters.name = { $regex: req.query["name"], $options: "i" };
         }
         if (keys.includes("diplay_name")) {
-            filters.email = { $regex: req.query["display_name"], $options: "i" };
+            filters.display_name = { $regex: req.query["display_name"], $options: "i" };
         }
         Role.find(filters).then(data => {
 
@@ -90,6 +118,9 @@ class roles {
 
 
     show = (req, res) => {
+        if (!req.policies.includes("show_role")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Role.findById(req.params.id).then(result => {
             if (result == null) {
                 return res.status(404).json({ error:true,message: " role doesn't exist" });
@@ -105,6 +136,9 @@ class roles {
 
 
     destroy = (req, res) => {
+        if (!req.policies.includes("delte_role")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Role.findById(req.params.id).then(result => {
             if (result == null) {
                 return res.status(404).json({ error:true,message: "role doesn't exist" });
@@ -130,8 +164,11 @@ class roles {
     }
 
 
-    update = (req, res) => {                                 
-        Role.findOne({ _id: req.params.id },).then((data) => {
+    update = async (req, res) => {  
+        if (!req.policies.includes("update_role")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
+        Role.findOne({ _id: req.params.id },).then(async(data) => {
 
             if (data == null) {
 
@@ -139,9 +176,10 @@ class roles {
 
             } else {
                 let name, policyid, policies, display_name;
+
                 var policyNames = [];
 
-                async function f() {
+             
 
                     if (req.body.policyid != "") {
 
@@ -150,6 +188,28 @@ class roles {
                             policies = data.policies;
                         }
                         else {
+                            var policyIds = [];
+                            await Policy.find().then(result => {
+                                for (let i = 0; i < result.length; i++) {
+                                    policyIds.push(result[i]._id);
+                                }
+                            })
+                            let notExist = false;
+                            let policyNotExist = [];
+
+                            for (let i = 0; i < req.body.policyid.length; i++) {
+                                if (!policyIds.includes(req.body.policyid[i])) {
+                                    notExist = true;
+                                    policyNotExist.push(req.body.policyid[i]);
+
+                                }
+                            }
+
+                            if (notExist == true)
+                                return res.status(404).json({ error: true, message: "policies " + policyNotExist + " not exists" });
+
+
+
                             policyid = req.body.policyid;
                             await Policy.find({
                                 _id: { $in: req.body.policyid }
@@ -215,10 +275,10 @@ class roles {
                         }
 
                     },
-                        { upsert: true }).then(result => { res.status(200).json({ error:true,data: {name,display_name,policyid,policies} }) });
-                } f();
+                        { upsert: true }).then(result => { res.status(200).json({ error:false,data: {name,display_name,policyid,policies} }) });
+              
             }
-            // }
+       
         }
 
         ).catch(err => {
@@ -233,4 +293,4 @@ class roles {
 
 
 
-module.exports = { roles };
+module.exports = { rolesControllers };

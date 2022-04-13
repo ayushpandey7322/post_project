@@ -15,11 +15,13 @@ const authRoutes = require('./api/routers/authRoutes');
 const policyRoutes = require('./api/routers/policyRoutes');
 const rolesRoutes = require('./api/routers/rolesRoutes');
 
+
 app.use('/', userRoutes);
 app.use('/', postRoutes);
 app.use('/', authRoutes);
 app.use('/', policyRoutes);
 app.use('/', rolesRoutes);
+
 
 
 

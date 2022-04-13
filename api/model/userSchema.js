@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
     gender: String,
     isActive: { type: String, default: "true" },
     token: String,
+    roleid: { type: Number,default:2, ref: 'Policy' },
+    role: { type: String, default: "user", ref: 'Policy' },
   
 }
 );

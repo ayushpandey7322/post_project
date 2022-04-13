@@ -1,21 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const { userAuth } = require('../middleware/userAuth');
-const AUTH = new userAuth;
+const Auth = new userAuth;
 
-const { user } = require('../controllers/user');
-const us = new user;
-
-
-router.get("/users", AUTH.auth, us.index);
-router.get('/me', AUTH.verifyToken, us.me);
-
- router.get('/users/:id', AUTH.auth, us.show);
- router.put('/users/:id', AUTH.personalAuth, us.update);
- router.put('/updatePassword/:id', AUTH.personalAuth, us.updatePassword);
-  router.delete('/users:id', AUTH.auth, us.destroy);
+const  userControllers  = require('../controllers/userControllers');
+const user = new userControllers;
 
 
+router.get("/users", Auth.verifyToken, Auth.rolesAuth, user.index);
+router.get('/me',  Auth.verifyToken, Auth.rolesAuth, user.me);
+router.get('/users/:id', Auth.auth, Auth.verifyToken, Auth.rolesAuth, user.show);
 
+router.put('/users/:id', Auth.personalAuth, Auth.verifyToken, Auth.rolesAuth, user.update);
+router.put('/updatePassword/:id', Auth.personalAuth, Auth.verifyToken, Auth.rolesAuth, user.updatePassword);
+router.delete('/users:id', Auth.auth, Auth.verifyToken, Auth.rolesAuth, user.destroy);
 
 module.exports =  router  ;

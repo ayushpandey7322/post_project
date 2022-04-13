@@ -3,8 +3,11 @@ require('dotenv').config();
 const policyValidations = require('../validations/policyValidation');
 const validations = new policyValidations;
 
-class policy {
+class policyControllers {
     store = (req, res) => {
+        if (!req.policies.includes("create_policy")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Policy.findOne({ name: req.body.name }).then ((data) => {
             if (data != null) {
                 return res.status(404).json({ error:true,message: 'policy exist' });
@@ -15,7 +18,7 @@ class policy {
                 }
                 const policy = new Policy({
                     name: req.body.name,
-                    display_name: req.body.display_name.toLowerCase(),
+                    display_name: req.body.display_name,
                     description: req.body.description
                 });
                 policy.save().then(result => {
@@ -33,6 +36,9 @@ class policy {
 
 
     index = (req, res, next) => {
+        if (!req.policies.includes("show_policy")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         let keys = Object.keys(req.query);
         let filters = new Object();
 
@@ -41,10 +47,10 @@ class policy {
             filters.name = { $regex: req.query["name"], $options: "i" };
         }
         if (keys.includes("diplay_name")) {
-            filters.email = { $regex: req.query["display_name"], $options: "i" };
+            filters.display_name = { $regex: req.query["display_name"], $options: "i" };
         }
         if (keys.includes("description")) {
-            filters.email = { $regex: req.query["description"], $options: "i" };
+            filters.description = { $regex: req.query["description"], $options: "i" };
         }
         
 
@@ -68,6 +74,9 @@ class policy {
 
 
     show = (req, res) => {
+        if (!req.policies.includes("show_policy")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Policy.findById(req.params.id).then(result => {
             if (result == null) {
                 return res.status(404).json({ error:true,message: " policy doesn't exist" });
@@ -85,6 +94,9 @@ class policy {
 
 
     destroy = (req, res) => {
+        if (!req.policies.includes("delete_policy")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Policy.findById(req.params.id).then(result => {
             if (result == null) {
                 return res.status(404).json({ error:true,message: "policy doesn't exist" });
@@ -110,7 +122,10 @@ class policy {
     }
 
 
-    update = (req, res) => {                                   
+    update = (req, res) => {   
+        if (!req.policies.includes("update_policy")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Policy.findOne({ _id: req.params.id }).then((data) => {
             console.log("hhh");
 
@@ -183,4 +198,4 @@ class policy {
         });
     };
 }
-module.exports = { policy };
+module.exports = policyControllers ;

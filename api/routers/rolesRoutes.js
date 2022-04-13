@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const { userAuth } = require('../middleware/userAuth');
+const Auth = new userAuth;
 
 
 
+const { rolesControllers } = require('../controllers/rolesControllers');
+const roles = new rolesControllers;
 
-const { roles } = require('../controllers/roles');
-const ro = new roles;
-
-router.post('/roles', ro.store);
-router.get('/roles', ro.index);
-router.get('/roles/:id', ro.show);
-router.delete('/roles/:id', ro.destroy);
-router.put('/roles/:id', ro.update);
+router.post('/roles', Auth.verifyToken, Auth.rolesAuth, roles.store);
+router.get('/roles', Auth.verifyToken, Auth.rolesAuth, roles.index);
+router.get('/roles/:id', Auth.verifyToken,Auth.rolesAuth, roles.show);
+router.delete('/roles/:id', Auth.verifyToken, Auth.rolesAuth, roles.destroy);
+router.put('/roles/:id', Auth.verifyToken, Auth.rolesAuth, roles.update);
 
 module.exports = router;

@@ -6,8 +6,11 @@ require('dotenv').config();
 const {  postValidation} = require('../validations/PostValidation');
 const validation = new postValidation;
 
-class post {
+class postControllers {
     store = (req, res) => {
+        if (!req.policies.includes("create_post")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
 
         let answer = validation.postValidation.validate(req.body);
         if (answer.error) {
@@ -29,6 +32,9 @@ class post {
     };
 
     index = (req, res, next) => {
+        if (!req.policies.includes("show_post")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Post.find({ $or:
             [
             {
@@ -54,6 +60,9 @@ class post {
     };
 
     show = (req, res, next) => {
+        if (!req.policies.includes("show_post")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Post.findOne({ _id: req.params.id }).then(result => {
         
             
@@ -89,6 +98,9 @@ class post {
 
 
     destroy = (req, res) => {
+        if (!req.policies.includes("delete_post")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Post.findById(req.params.id).then(result => {
             if (result == null) {
                 return res.status(404).json({ error:true,message: "post not exists" });
@@ -117,7 +129,10 @@ class post {
     };
 
 
-    update = (req, res) => {                                 
+    update = (req, res) => {   
+        if (!req.policies.includes("update_post")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
         Post.findOne({ _id: req.params.id },).then((data) => {
 
             if (data == null) {
@@ -190,4 +205,4 @@ class post {
 
 
 }
-module.exports = { post };
+module.exports = { postControllers };
