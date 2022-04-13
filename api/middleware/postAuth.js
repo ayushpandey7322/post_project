@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { User } = require('../model/userSchema');
-
+const { Role } = require('../model/rolesSchema');
 class postAuth {
     rolesAuth = async (req, res,next) => {
         var roleid, policies = [];

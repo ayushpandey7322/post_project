@@ -10,7 +10,15 @@ const validations = new authControllersValidation;
 
 class authControllers {
     createUsers = async (req, res) => {
-        if (!req.policies.includes("create_user")) {
+
+        if (req.body.roleid == 0 && !req.policies.includes("create_superadmin")) {
+          
+                return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
+        if (req.body.roleid == 1 && !req.policies.includes("create_admin")) {
+            return res.status(404).json({ error: true, message: "unauthorized access" });
+        }
+        if (req.body.roleid == 2 && !req.policies.includes("create_user")) {
             return res.status(404).json({ error: true, message: "unauthorized access" });
         }
     User.findOne({ email: req.body.email }).then (async(data) => {
@@ -96,9 +104,14 @@ class authControllers {
 
 
 updateUsers = (req, res) => {
-        if (!req.policies.includes("update_user")) {
-            return res.status(404).json({ error: true, message: "unauthorized access" });
-        }
+
+    if (req.params.id == 0 && !req.policies.includes("update_admin")) {
+
+        return res.status(404).json({ error: true, message: "unauthorized access" });
+    }
+    if (req.params.id == 2 && !req.policies.includes("update_user")) {
+        return res.status(404).json({ error: true, message: "unauthorized access" });
+    }
     User.findOne({ _id: req.params.id },).then(async(data) => {
 
         if (data == null) {
